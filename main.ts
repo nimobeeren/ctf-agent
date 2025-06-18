@@ -4,8 +4,9 @@ import { NodeSDK } from "@opentelemetry/sdk-node";
 import { generateText, tool } from "ai";
 import "dotenv/config";
 import { LangfuseExporter } from "langfuse-vercel";
-import tls from "tls";
 import z from "zod";
+
+// This was enough to solve the challenge!!
 
 const sdk = new NodeSDK({
   traceExporter: new LangfuseExporter(),
@@ -13,6 +14,7 @@ const sdk = new NodeSDK({
 });
 
 sdk.start();
+
 
 const challenge = `
 Flat Forge Society
@@ -30,40 +32,52 @@ const azure = createAzure({
 });
 
 const tools = {
-  request: tool({
-    description: "Make a HTTP request",
+  get: tool({
+    description: "Make a HTTP GET request",
     parameters: z.object({
-      host: z
-        .string()
-        .describe("The host to send the request to (without port)"),
-      rawRequest: z
-        .string()
-        .describe("The raw request to send in HTTP/1.1 RFC 9112 format"),
+      url: z.string(),
+      headers: z.array(
+        z.object({
+          name: z.string(),
+          value: z.string(),
+        })
+      ),
     }),
-    execute: async ({ host, rawRequest }) => {
-      return new Promise((resolve, reject) => {
-        const client = tls.connect(
-          443,
-          host,
-          { rejectUnauthorized: false },
-          () => {
-            client.write(rawRequest.replace(/\n/g, "\r\n"));
-          }
-        );
-
-        let response = "";
-        client.on("data", (data) => {
-          response += data.toString();
-        });
-
-        client.on("end", () => {
-          resolve(response);
-        });
-
-        client.on("error", (err) => {
-          reject(err);
-        });
+    execute: async ({ url, headers }) => {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: headers.map(({ name, value }) => [name, value]),
       });
+      return {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: await response.text(),
+      };
+    },
+  }),
+  post: tool({
+    description: "Make a HTTP POST request",
+    parameters: z.object({
+      url: z.string(),
+      headers: z.array(
+        z.object({
+          name: z.string(),
+          value: z.string(),
+        })
+      ),
+      body: z.string(),
+    }),
+    execute: async ({ url, headers, body }) => {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: headers.map(({ name, value }) => [name, value]),
+        body,
+      });
+      return {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+        body: await response.text(),
+      };
     },
   }),
 };
@@ -76,10 +90,10 @@ ${challenge}
 `;
 
 const result = await generateText({
-  model: azure("gpt-4.1"),
+  model: azure("o3"),
   tools,
   prompt,
-  maxSteps: 3,
+  maxSteps: 10,
   experimental_telemetry: { isEnabled: true },
 });
 
