@@ -23,7 +23,9 @@ const tools = {
   request: tool({
     description: "Make a HTTP request",
     parameters: z.object({
-      host: z.string().describe("The host to send the request to"),
+      host: z
+        .string()
+        .describe("The host to send the request to (without port)"),
       rawRequest: z
         .string()
         .describe("The raw request to send in HTTP/1.1 RFC 9112 format"),
@@ -64,11 +66,12 @@ ${challenge}
 `;
 
 const result = await generateText({
-  model: azure("gpt-4.1"),
+  model: azure("o3"),
   tools,
   prompt,
-  // maxSteps: 3,
+  maxSteps: 10,
 });
 
-console.log("🛠️ tool results:", result.toolResults);
+console.log("✨ tool results:", result.toolResults);
+console.log("🛠️ tool calls without results:", result.toolCalls);
 console.log("🏁 final output:", result.text);
