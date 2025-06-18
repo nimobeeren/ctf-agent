@@ -1,18 +1,15 @@
+import { createAzure } from "@ai-sdk/azure";
+import { generateText } from "ai";
 import "dotenv/config";
-import { AzureOpenAI } from "openai";
 
-// Example: OpenAI Chat Completions API
-
-const client = new AzureOpenAI();
-
-const completion = await client.chat.completions.create({
-  model: "gpt-4.1",
-  messages: [
-    {
-      role: "user",
-      content: "Write a one-sentence bedtime story about a unicorn.",
-    },
-  ],
+const azure = createAzure({
+  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
+  apiKey: process.env.AZURE_OPENAI_API_KEY,
 });
 
-console.log(completion.choices[0].message.content);
+const result = await generateText({
+  model: azure("o3"),
+  prompt: "Write a one-sentence bedtime story about a unicorn.",
+});
+
+console.log(result.response.body);
