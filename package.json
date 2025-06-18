@@ -1,0 +1,22 @@
+{
+  "name": "ctf-agent",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx main.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "ai": "^4.3.16",
+    "dotenv": "^16.5.0",
+    "openai": "^5.5.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  }
+}
