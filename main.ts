@@ -1,8 +1,18 @@
 import { createAzure } from "@ai-sdk/azure";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { NodeSDK } from "@opentelemetry/sdk-node";
 import { generateText, tool } from "ai";
 import "dotenv/config";
+import { LangfuseExporter } from "langfuse-vercel";
 import tls from "tls";
 import z from "zod";
+
+const sdk = new NodeSDK({
+  traceExporter: new LangfuseExporter(),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+
+sdk.start();
 
 const challenge = `
 Flat Forge Society
@@ -66,12 +76,15 @@ ${challenge}
 `;
 
 const result = await generateText({
-  model: azure("o3"),
+  model: azure("gpt-4.1"),
   tools,
   prompt,
-  maxSteps: 10,
+  maxSteps: 3,
+  experimental_telemetry: { isEnabled: true },
 });
 
 console.log("✨ tool results:", result.toolResults);
 console.log("🛠️ tool calls without results:", result.toolCalls);
 console.log("🏁 final output:", result.text);
+
+await sdk.shutdown();
