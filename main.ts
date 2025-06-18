@@ -1,6 +1,7 @@
 import { createAzure } from "@ai-sdk/azure";
 import { generateText, tool } from "ai";
 import "dotenv/config";
+import tls from "tls";
 import z from "zod";
 
 const challenge = `
@@ -22,17 +23,35 @@ const tools = {
   request: tool({
     description: "Make a HTTP request",
     parameters: z.object({
-      url: z.string().describe("The URL to request"),
-      // method: z.string().describe("The HTTP method to use"),
-      // headers: z.record(z.string(), z.string()).describe("The HTTP headers to send"),
-      // body: z.string().describe("The HTTP body to send"),
+      host: z.string().describe("The host to send the request to"),
+      rawRequest: z
+        .string()
+        .describe("The raw request to send in HTTP/1.1 RFC 9112 format"),
     }),
-    execute: async ({ url }) => {
-      const response = await fetch(url);
-      return {
-        headers: Object.fromEntries(response.headers.entries()),
-        body: await response.text(),
-      };
+    execute: async ({ host, rawRequest }) => {
+      return new Promise((resolve, reject) => {
+        const client = tls.connect(
+          443,
+          host,
+          { rejectUnauthorized: false },
+          () => {
+            client.write(rawRequest.replace(/\n/g, "\r\n"));
+          }
+        );
+
+        let response = "";
+        client.on("data", (data) => {
+          response += data.toString();
+        });
+
+        client.on("end", () => {
+          resolve(response);
+        });
+
+        client.on("error", (err) => {
+          reject(err);
+        });
+      });
     },
   }),
 };
