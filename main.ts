@@ -14,13 +14,7 @@ const sdk = new NodeSDK({
 sdk.start();
 
 const challenge = `
-Flat Forge Society
-200
-Developed by The S-Unit
-
-Ah, greetings, stranger! I'm a wee bit sloshed tonight, so bear wit' me, will ye? Listen up, the dwarven database holds secrets 'bout the earth… an' it ain't round like them elf folk claim. Nay, it's flat as a forge table! I'm afraid if we keep diggin' too deep, we might just blast a hole right through it! That'd be the end o' us all! So I needs ye to hack inta the Stoneforge Archives, find them secrets, an' stop this madness.
-
-https://mines.ctf.p0wnparty.nl/
+ENTER A CHALLENGE HERE
 `;
 
 const azure = createAzure({

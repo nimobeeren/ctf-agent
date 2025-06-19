@@ -20,6 +20,8 @@ cp .env.example .env
 
 ## Usage
 
+Set the challenge in the `challenge` variable in `main.ts`, then run:
+
 ```sh
 npm start
 ```
