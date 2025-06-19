@@ -4,7 +4,7 @@ This is an AI agent that completes Capture-The-Flag (CTF) challenges.
 
 ## Installation
 
-1. Install [Node.js](https://nodejs.org/).
+1. Install [Node.js](https://nodejs.org/) 24.
 
 2. Install dependencies:
 
@@ -20,8 +20,8 @@ cp .env.example .env
 
 ## Usage
 
-Set the challenge in the `challenge` variable in `main.ts`, then run:
+Read a challenge from a text file:
 
 ```sh
-npm start
+node main.ts challenge.md
 ```

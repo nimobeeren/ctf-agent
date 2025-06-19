@@ -2,10 +2,7 @@
   "name": "ctf-agent",
   "type": "module",
   "version": "1.0.0",
-  "main": "index.js",
-  "scripts": {
-    "start": "tsx main.ts"
-  },
+  "main": "main.ts",
   "author": "",
   "license": "ISC",
   "description": "",

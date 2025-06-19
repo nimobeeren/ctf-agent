@@ -3,7 +3,10 @@ import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentation
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { generateText, tool } from "ai";
 import "dotenv/config";
+import { readFileSync } from "fs";
 import { LangfuseExporter } from "langfuse-vercel";
+import { exit } from "node:process";
+import { parseArgs } from "node:util";
 import z from "zod";
 
 // Set up Langfuse tracing
@@ -13,9 +16,18 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
-const challenge = `
-ENTER A CHALLENGE HERE
-`;
+// Parse command line arguments
+const { positionals } = parseArgs({
+  allowPositionals: true,
+  strict: false,
+});
+if (positionals.length < 1) {
+  console.error(
+    "Please provide a path to a text file that contains a CTF challenge"
+  );
+  exit(1);
+}
+const challenge = readFileSync(positionals[0], "utf-8");
 
 const azure = createAzure({
   baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
