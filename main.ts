@@ -13,8 +13,6 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
-// This was enough to solve the challenge!!
-
 const challenge = `
 Flat Forge Society
 200
