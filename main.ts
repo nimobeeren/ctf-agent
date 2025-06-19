@@ -6,15 +6,14 @@ import "dotenv/config";
 import { LangfuseExporter } from "langfuse-vercel";
 import z from "zod";
 
-// This was enough to solve the challenge!!
-
+// Set up Langfuse tracing
 const sdk = new NodeSDK({
   traceExporter: new LangfuseExporter(),
   instrumentations: [getNodeAutoInstrumentations()],
 });
-
 sdk.start();
 
+// This was enough to solve the challenge!!
 
 const challenge = `
 Flat Forge Society
