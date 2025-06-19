@@ -23,5 +23,5 @@ cp .env.example .env
 Read a challenge from a text file:
 
 ```sh
-node main.ts challenge.md
+node --no-warnings main.ts challenges/ctflearn-88.md
 ```
