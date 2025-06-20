@@ -16,7 +16,7 @@ const sdk = new NodeSDK({
 });
 sdk.start();
 
-// Parse command line arguments
+// Read challenge from file passed as CLI argument
 const { positionals } = parseArgs({
   allowPositionals: true,
   strict: false,
@@ -34,33 +34,18 @@ const azure = createAzure({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
 });
 
+const prompt = `
+You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
+
+Challenge:
+${challenge}
+`;
+
 const tools = {
-  get: tool({
-    description: "Make a HTTP GET request",
+  request: tool({
+    description: "Make a HTTP request",
     parameters: z.object({
-      url: z.string(),
-      headers: z.array(
-        z.object({
-          name: z.string(),
-          value: z.string(),
-        })
-      ),
-    }),
-    execute: async ({ url, headers }) => {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: headers.map(({ name, value }) => [name, value]),
-      });
-      return {
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-        body: await response.text(),
-      };
-    },
-  }),
-  post: tool({
-    description: "Make a HTTP POST request",
-    parameters: z.object({
+      method: z.string(),
       url: z.string(),
       headers: z.array(
         z.object({
@@ -70,38 +55,34 @@ const tools = {
       ),
       body: z.string(),
     }),
-    execute: async ({ url, headers, body }) => {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: headers.map(({ name, value }) => [name, value]),
-        body,
-      });
-      return {
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-        body: await response.text(),
-      };
+    execute: async ({ method, url, headers, body }) => {
+      try {
+        const response = await fetch(url, {
+          method,
+          headers: headers.map(({ name, value }) => [name, value]),
+          body: body || undefined,
+        });
+        return {
+          status: response.status,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: await response.text(),
+        };
+      } catch (e) {
+        // Give the error back to the LLM
+        return String(e);
+      }
     },
   }),
 };
 
-const prompt = `
-You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
-
-Challenge:
-${challenge}
-`;
-
 const result = await generateText({
-  model: azure("o3"),
-  tools,
+  model: azure("o4-mini"),
   prompt,
+  tools,
   maxSteps: 10,
   experimental_telemetry: { isEnabled: true },
 });
 
-console.log("✨ tool results:", result.toolResults);
-console.log("🛠️ tool calls without results:", result.toolCalls);
-console.log("🏁 final output:", result.text);
+console.log(`🏁 final output\n${result.text}`);
 
 await sdk.shutdown();
