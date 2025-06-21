@@ -79,10 +79,17 @@ const result = await generateText({
   model: azure("o4-mini"),
   prompt,
   tools,
-  maxSteps: 10,
+  maxSteps: 20,
+  onStepFinish: (step) => {
+    for (const toolCall of step.toolCalls) {
+      console.log(
+        `🛠️ ${toolCall.toolName}: ${JSON.stringify(toolCall.args, null, 2)}`
+      );
+    }
+  },
   experimental_telemetry: { isEnabled: true },
 });
 
-console.log(`🏁 final output\n${result.text}`);
+console.log("🏁", result.text);
 
 await sdk.shutdown();
