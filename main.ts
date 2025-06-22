@@ -10,7 +10,7 @@ import { parseArgs } from "node:util";
 import z from "zod";
 import { httpRequest } from "./network.ts";
 
-const MAX_RESPONSE_BODY_LENGTH = 5000; // characters
+const MAX_RESPONSE_LENGTH = 5000; // characters
 
 // Set up Langfuse tracing
 const sdk = new NodeSDK({
@@ -66,9 +66,9 @@ const tools = {
           headers: new Headers(headers.map((h) => [h.name, h.value])),
           body,
         });
-        if (responseMessage.length > MAX_RESPONSE_BODY_LENGTH) {
+        if (responseMessage.length > MAX_RESPONSE_LENGTH) {
           responseMessage =
-            responseMessage.slice(0, MAX_RESPONSE_BODY_LENGTH) +
+            responseMessage.slice(0, MAX_RESPONSE_LENGTH) +
             "... (truncated)";
         }
         return responseMessage;
