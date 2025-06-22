@@ -6,6 +6,7 @@ export async function httpRequest(init: {
   method: string;
   headers?: Headers;
   body?: string;
+  timeout?: number;
 }) {
   const url = new URL(init.url);
   if (url.protocol !== "https:") {
@@ -33,14 +34,17 @@ export async function httpRequest(init: {
     init.body || ""
   }`;
 
-  // TODO: set timeout
   const socket = tls.connect(Number(url.port) || 443, url.hostname, {
     rejectUnauthorized: false,
+    timeout: init.timeout ?? 5000,
   });
   socket.write(requestMessage);
   let responseMessage = "";
   socket.on("data", (data) => {
     responseMessage += data.toString();
+  });
+  socket.on("timeout", () => {
+    socket.destroy(new Error("Request timed out"));
   });
   await once(socket, "end");
   return responseMessage;

@@ -5,11 +5,17 @@ test("completes request to example.com", async () => {
   const response = await httpRequest({
     url: "https://example.com",
     method: "GET",
-    headers: new Headers(),
-    body: "",
   });
 
-  console.log(response)
-
   expect(response.startsWith("HTTP/1.1"));
+});
+
+test("rejects on timeout", async () => {
+  const response = httpRequest({
+    url: "https://example.com",
+    method: "GET",
+    timeout: 1,
+  });
+
+  await expect(response).rejects.toThrow("Request timed out");
 });
