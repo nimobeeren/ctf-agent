@@ -9,6 +9,8 @@ import { exit } from "node:process";
 import { parseArgs } from "node:util";
 import z from "zod";
 
+const MAX_RESPONSE_BODY_LENGTH = 5000; // characters
+
 // Set up Langfuse tracing
 const sdk = new NodeSDK({
   traceExporter: new LangfuseExporter(),
@@ -61,11 +63,32 @@ const tools = {
           method,
           headers: headers.map(({ name, value }) => [name, value]),
           body: body || undefined,
+          // We want to see the raw response, no additional behavior like redirect following.
+          // This also allows us to see cookies in the response.
+          redirect: "manual",
         });
+
+        // Read the response body text up to a maximum length
+        let responseBodyText = "";
+        if (response.body) {
+          for await (const chunk of response.body.pipeThrough(
+            new TextDecoderStream()
+          )) {
+            if (
+              responseBodyText.length + chunk.length >
+              MAX_RESPONSE_BODY_LENGTH
+            ) {
+              responseBodyText += `... (truncated)`;
+              break;
+            }
+            responseBodyText += chunk;
+          }
+        }
+
         return {
           status: response.status,
           headers: Object.fromEntries(response.headers.entries()),
-          body: await response.text(),
+          body: responseBodyText,
         };
       } catch (e) {
         // Give the error back to the LLM
@@ -79,7 +102,7 @@ const result = await generateText({
   model: azure("o4-mini"),
   prompt,
   tools,
-  maxSteps: 20,
+  maxSteps: 10,
   onStepFinish: (step) => {
     for (const toolCall of step.toolCalls) {
       console.log(
@@ -91,5 +114,6 @@ const result = await generateText({
 });
 
 console.log("🏁", result.text);
+console.log(`🪜 Took ${result.steps.length} steps`);
 
 await sdk.shutdown();
