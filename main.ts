@@ -60,17 +60,16 @@ const tools = {
     }),
     execute: async ({ method, url, headers, body }) => {
       try {
-        const responseMessage = await httpRequest({
+        let responseMessage = await httpRequest({
           method,
           url,
           headers: new Headers(headers.map((h) => [h.name, h.value])),
           body,
         });
         if (responseMessage.length > MAX_RESPONSE_BODY_LENGTH) {
-          return (
+          responseMessage =
             responseMessage.slice(0, MAX_RESPONSE_BODY_LENGTH) +
-            "... (truncated)"
-          );
+            "... (truncated)";
         }
         return responseMessage;
       } catch (e) {

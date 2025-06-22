@@ -1,4 +1,4 @@
-import { once } from "node:events";
+import events from "node:events";
 import tls from "node:tls";
 
 export async function httpRequest(init: {
@@ -46,6 +46,6 @@ export async function httpRequest(init: {
   socket.on("timeout", () => {
     socket.destroy(new Error("Request timed out"));
   });
-  await once(socket, "end");
+  await events.once(socket, "end");
   return responseMessage;
 }
