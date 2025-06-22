@@ -63,8 +63,9 @@ const tools = {
           method,
           headers: headers.map(({ name, value }) => [name, value]),
           body: body || undefined,
-          // We want to see the raw response, no additional behavior like redirect following.
-          // This also allows us to see cookies in the response.
+          // We want to see the raw response, no additional behavior like
+          // redirect following. This also allows us to see cookies in
+          // the response.
           redirect: "manual",
         });
 
@@ -85,11 +86,20 @@ const tools = {
           }
         }
 
-        return {
-          status: response.status,
-          headers: Object.fromEntries(response.headers.entries()),
-          body: responseBodyText,
-        };
+        // Read the response headers and store them as `name: value` strings.
+        // We can't store headers as an object since there may be multiple
+        // headers with the same name.
+        let responseHeadersText = "";
+        for (const [name, value] of response.headers.entries()) {
+          responseHeadersText += `${name}: ${value}\n`;
+        }
+
+        return `\
+HTTP/2 ${response.status} ${response.statusText}
+${responseHeadersText}
+
+${responseBodyText}
+`;
       } catch (e) {
         // Give the error back to the LLM
         return String(e);
@@ -102,7 +112,7 @@ const result = await generateText({
   model: azure("o4-mini"),
   prompt,
   tools,
-  maxSteps: 10,
+  maxSteps: 20,
   onStepFinish: (step) => {
     for (const toolCall of step.toolCalls) {
       console.log(
