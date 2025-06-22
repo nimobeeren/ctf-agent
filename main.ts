@@ -3,11 +3,12 @@ import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentation
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { generateText, tool } from "ai";
 import "dotenv/config";
-import { readFileSync } from "fs";
 import { LangfuseExporter } from "langfuse-vercel";
+import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 import { parseArgs } from "node:util";
 import z from "zod";
+import { httpRequest } from "./network.ts";
 
 const MAX_RESPONSE_BODY_LENGTH = 5000; // characters
 
@@ -59,47 +60,19 @@ const tools = {
     }),
     execute: async ({ method, url, headers, body }) => {
       try {
-        const response = await fetch(url, {
+        const responseMessage = await httpRequest({
           method,
-          headers: headers.map(({ name, value }) => [name, value]),
-          body: body || undefined,
-          // We want to see the raw response, no additional behavior like
-          // redirect following. This also allows us to see cookies in
-          // the response.
-          redirect: "manual",
+          url,
+          headers: new Headers(headers.map((h) => [h.name, h.value])),
+          body,
         });
-
-        // Read the response body text up to a maximum length
-        let responseBodyText = "";
-        if (response.body) {
-          for await (const chunk of response.body.pipeThrough(
-            new TextDecoderStream()
-          )) {
-            if (
-              responseBodyText.length + chunk.length >
-              MAX_RESPONSE_BODY_LENGTH
-            ) {
-              responseBodyText += `... (truncated)`;
-              break;
-            }
-            responseBodyText += chunk;
-          }
+        if (responseMessage.length > MAX_RESPONSE_BODY_LENGTH) {
+          return (
+            responseMessage.slice(0, MAX_RESPONSE_BODY_LENGTH) +
+            "... (truncated)"
+          );
         }
-
-        // Read the response headers and store them as `name: value` strings.
-        // We can't store headers as an object since there may be multiple
-        // headers with the same name.
-        let responseHeadersText = "";
-        for (const [name, value] of response.headers.entries()) {
-          responseHeadersText += `${name}: ${value}\n`;
-        }
-
-        return `\
-HTTP/2 ${response.status} ${response.statusText}
-${responseHeadersText}
-
-${responseBodyText}
-`;
+        return responseMessage;
       } catch (e) {
         // Give the error back to the LLM
         return String(e);
