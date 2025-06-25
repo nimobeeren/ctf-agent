@@ -10,9 +10,7 @@ import { parseArgs } from "node:util";
 import z from "zod";
 import { httpRequest } from "./network.ts";
 
-/*
-=============== SETUP ===============
-*/
+// #region =============== SETUP ===============
 
 const MAX_RESPONSE_LENGTH = 5000; // characters
 
@@ -43,9 +41,9 @@ const azure = createAzure({
 
 const startTime = Date.now();
 
-/*
-======= THE INTERESTING STUFF =======
-*/
+// #endregion
+
+// #region ======= THE INTERESTING STUFF =======
 
 const prompt = `
 You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
@@ -107,3 +105,5 @@ console.log(`🪜 Took ${result.steps.length} steps`);
 console.log(`⌛ Took ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
 
 await sdk.shutdown();
+
+//#endregion
