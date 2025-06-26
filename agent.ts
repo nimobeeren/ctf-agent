@@ -1,4 +1,5 @@
 import { createAzure } from "@ai-sdk/azure";
+import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
 import { generateText, tool } from "ai";
 import crypto from "node:crypto";
 import z from "zod";
@@ -14,8 +15,9 @@ const MAX_RESPONSE_LENGTH = 5000; // characters
  */
 export async function agent(challenge: string) {
   const azure = createAzure({
-    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
+    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/v1`,
     apiKey: process.env.AZURE_OPENAI_API_KEY,
+    apiVersion: "preview",
   });
 
   const prompt = `
@@ -77,10 +79,20 @@ ${challenge}
   const startTime = Date.now();
 
   const result = await generateText({
-    model: azure("o4-mini"),
+    model: azure.responses("o4-mini"),
     prompt,
     tools,
     maxSteps: 20,
+    providerOptions: {
+      openai: {
+        reasoningEffort: "medium",
+        reasoningSummary: "auto",
+      } satisfies OpenAIResponsesProviderOptions,
+    },
+    onStepFinish: (step) => {
+      // NOTE: OpenAI doesn't seem to return a reasoning summary when a tool was used
+      console.log("🧠", step.reasoning);
+    },
     experimental_telemetry: { isEnabled: true },
   });
 
