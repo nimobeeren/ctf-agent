@@ -10,6 +10,8 @@ import { parseArgs } from "node:util";
 import z from "zod";
 import { httpRequest } from "./network.ts";
 
+// #region =============== SETUP ===============
+
 const MAX_RESPONSE_LENGTH = 5000; // characters
 
 // Set up Langfuse tracing
@@ -37,12 +39,18 @@ const azure = createAzure({
   apiKey: process.env.AZURE_OPENAI_API_KEY,
 });
 
+const startTime = Date.now();
+
+// #endregion
+
+// #region ======= THE INTERESTING STUFF =======
+
 const prompt = `
 You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
 
 Challenge:
 ${challenge}
-`;
+`.trim();
 
 const tools = {
   request: tool({
@@ -59,18 +67,22 @@ const tools = {
       body: z.string(),
     }),
     execute: async ({ method, url, headers, body }) => {
+      console.log("🌐", { method, url, headers, body });
       try {
+        // Make a HTTP request (like fetch)
         let responseMessage = await httpRequest({
           method,
           url,
           headers: new Headers(headers.map((h) => [h.name, h.value])),
           body,
         });
+
+        // Truncate the response if it is too long
         if (responseMessage.length > MAX_RESPONSE_LENGTH) {
           responseMessage =
-            responseMessage.slice(0, MAX_RESPONSE_LENGTH) +
-            "... (truncated)";
+            responseMessage.slice(0, MAX_RESPONSE_LENGTH) + "... (truncated)";
         }
+
         return responseMessage;
       } catch (e) {
         // Give the error back to the LLM
@@ -85,17 +97,13 @@ const result = await generateText({
   prompt,
   tools,
   maxSteps: 20,
-  onStepFinish: (step) => {
-    for (const toolCall of step.toolCalls) {
-      console.log(
-        `🛠️ ${toolCall.toolName}: ${JSON.stringify(toolCall.args, null, 2)}`
-      );
-    }
-  },
   experimental_telemetry: { isEnabled: true },
 });
 
 console.log("🏁", result.text);
 console.log(`🪜 Took ${result.steps.length} steps`);
+console.log(`⌛ Took ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
 
 await sdk.shutdown();
+
+//#endregion
