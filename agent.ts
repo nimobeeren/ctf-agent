@@ -18,7 +18,7 @@ export async function agent(challenge: string) {
   });
 
   const prompt = `
-You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
+You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag. Summarize your steps at the end.
 
 Challenge:
 ${challenge}
