@@ -1,5 +1,6 @@
 import { createAzure } from "@ai-sdk/azure";
 import { generateText, tool } from "ai";
+import crypto from "node:crypto";
 import z from "zod";
 import { httpRequest } from "./network.ts";
 
@@ -61,6 +62,16 @@ ${challenge}
         }
       },
     }),
+    sha256: tool({
+      description:
+        "Compute the SHA-256 hash of a UTF-8 string, returning the digest as a hex string",
+      parameters: z.object({
+        input: z.string(),
+      }),
+      execute: async ({ input }) => {
+        return crypto.createHash("sha256").update(input).digest("hex");
+      },
+    }),
   };
 
   const startTime = Date.now();
@@ -74,6 +85,6 @@ ${challenge}
   });
 
   console.log("🏁", result.text);
-  console.log(`🪜 Took ${result.steps.length} steps`);
+  console.log(`🪜  Took ${result.steps.length} steps`);
   console.log(`⌛ Took ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
 }
