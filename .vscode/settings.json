@@ -1,0 +1,4 @@
+{
+  // Needed because Node.js 24 type stripping only works when imports have extensions
+  "typescript.preferences.importModuleSpecifierEnding": "js"
+}
