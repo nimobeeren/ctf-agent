@@ -1,18 +1,11 @@
-import { createAzure } from "@ai-sdk/azure";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
 import { NodeSDK } from "@opentelemetry/sdk-node";
-import { generateText, tool } from "ai";
 import "dotenv/config";
 import { LangfuseExporter } from "langfuse-vercel";
 import { readFileSync } from "node:fs";
 import { exit } from "node:process";
 import { parseArgs } from "node:util";
-import z from "zod";
-import { httpRequest } from "./network.ts";
-
-// #region =============== SETUP ===============
-
-const MAX_RESPONSE_LENGTH = 5000; // characters
+import { agent } from "./agent.ts";
 
 // Set up Langfuse tracing
 const sdk = new NodeSDK({
@@ -34,76 +27,6 @@ if (positionals.length < 1) {
 }
 const challenge = readFileSync(positionals[0], "utf-8");
 
-const azure = createAzure({
-  baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
-  apiKey: process.env.AZURE_OPENAI_API_KEY,
-});
-
-const startTime = Date.now();
-
-// #endregion
-
-// #region ======= THE INTERESTING STUFF =======
-
-const prompt = `
-You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag.
-
-Challenge:
-${challenge}
-`.trim();
-
-const tools = {
-  request: tool({
-    description: "Make a HTTP request",
-    parameters: z.object({
-      method: z.string(),
-      url: z.string(),
-      headers: z.array(
-        z.object({
-          name: z.string(),
-          value: z.string(),
-        })
-      ),
-      body: z.string(),
-    }),
-    execute: async ({ method, url, headers, body }) => {
-      console.log("🌐", { method, url, headers, body });
-      try {
-        // Make a HTTP request (like fetch)
-        let responseMessage = await httpRequest({
-          method,
-          url,
-          headers: new Headers(headers.map((h) => [h.name, h.value])),
-          body,
-        });
-
-        // Truncate the response if it is too long
-        if (responseMessage.length > MAX_RESPONSE_LENGTH) {
-          responseMessage =
-            responseMessage.slice(0, MAX_RESPONSE_LENGTH) + "... (truncated)";
-        }
-
-        return responseMessage;
-      } catch (e) {
-        // Give the error back to the LLM
-        return String(e);
-      }
-    },
-  }),
-};
-
-const result = await generateText({
-  model: azure("o4-mini"),
-  prompt,
-  tools,
-  maxSteps: 20,
-  experimental_telemetry: { isEnabled: true },
-});
-
-console.log("🏁", result.text);
-console.log(`🪜 Took ${result.steps.length} steps`);
-console.log(`⌛ Took ${((Date.now() - startTime) / 1000).toFixed(2)}s`);
+await agent(challenge);
 
 await sdk.shutdown();
-
-//#endregion
