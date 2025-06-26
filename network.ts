@@ -1,6 +1,12 @@
 import events from "node:events";
 import tls from "node:tls";
 
+/**
+ * Make a HTTP request.
+ * 
+ * Similar to fetch, except it uses a raw TCP connection under the hood which means it can do things
+ * that fetch doesn't allow, like sending a GET request with a body.
+ * */
 export async function httpRequest(init: {
   url: string | URL;
   method: string;

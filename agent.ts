@@ -5,6 +5,12 @@ import { httpRequest } from "./network.ts";
 
 const MAX_RESPONSE_LENGTH = 5000; // characters
 
+/**
+ * Agent that completes Capture-The-Flag (CTF) challenges.
+ *
+ * @param challenge Description of the challenge to complete. It should at least contain a URL as a
+ * starting point.
+ */
 export async function agent(challenge: string) {
   const azure = createAzure({
     baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
@@ -35,7 +41,6 @@ ${challenge}
       execute: async ({ method, url, headers, body }) => {
         console.log("🌐", { method, url, headers, body });
         try {
-          // Make a HTTP request (like fetch)
           let responseMessage = await httpRequest({
             method,
             url,
