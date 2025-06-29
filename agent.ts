@@ -1,7 +1,11 @@
 import { createAzure } from "@ai-sdk/azure";
-import type { OpenAIResponsesProviderOptions } from "@ai-sdk/openai";
-import { generateText, tool } from "ai";
-import crypto from "node:crypto";
+import {
+  experimental_createMCPClient as createMCPClient,
+  generateText,
+  tool,
+} from "ai";
+import { Experimental_StdioMCPTransport as StdioMCPTransport } from "ai/mcp-stdio";
+import "dotenv/config";
 import z from "zod";
 import { httpRequest } from "./network.ts";
 
@@ -10,14 +14,12 @@ const MAX_RESPONSE_LENGTH = 5000; // characters
 /**
  * Agent that completes Capture-The-Flag (CTF) challenges.
  *
- * @param challenge Description of the challenge to complete. It should at least contain a URL as a
- * starting point.
+ * @param challenge Description of the challenge to complete.
  */
 export async function agent(challenge: string) {
   const azure = createAzure({
-    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/v1`,
+    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
     apiKey: process.env.AZURE_OPENAI_API_KEY,
-    apiVersion: "preview",
   });
 
   const prompt = `
@@ -26,6 +28,22 @@ You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools
 Challenge:
 ${challenge}
 `.trim();
+
+  // MCP Run Python: https://ai.pydantic.dev/mcp/run-python/
+  const runPythonMCP = await createMCPClient({
+    transport: new StdioMCPTransport({
+      command: "deno",
+      args: [
+        "run",
+        "-N",
+        "-R=node_modules",
+        "-W=node_modules",
+        "--node-modules-dir=auto",
+        "jsr:@pydantic/mcp-run-python",
+        "stdio",
+      ],
+    }),
+  });
 
   const tools = {
     request: tool({
@@ -64,35 +82,16 @@ ${challenge}
         }
       },
     }),
-    sha256: tool({
-      description:
-        "Compute the SHA-256 hash of a UTF-8 string, returning the digest as a hex string",
-      parameters: z.object({
-        input: z.string(),
-      }),
-      execute: async ({ input }) => {
-        return crypto.createHash("sha256").update(input).digest("hex");
-      },
-    }),
+    ...(await runPythonMCP.tools()),
   };
 
   const startTime = Date.now();
 
   const result = await generateText({
-    model: azure.responses("o4-mini"),
+    model: azure("o4-mini"),
     prompt,
     tools,
     maxSteps: 20,
-    providerOptions: {
-      openai: {
-        reasoningEffort: "medium",
-        reasoningSummary: "auto",
-      } satisfies OpenAIResponsesProviderOptions,
-    },
-    onStepFinish: (step) => {
-      // NOTE: OpenAI doesn't seem to return a reasoning summary when a tool was used
-      console.log("🧠", step.reasoning);
-    },
     experimental_telemetry: { isEnabled: true },
   });
 
