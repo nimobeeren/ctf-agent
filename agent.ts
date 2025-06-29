@@ -1,13 +1,9 @@
 import { createAzure } from "@ai-sdk/azure";
-import {
-  experimental_createMCPClient as createMCPClient,
-  generateText,
-  tool,
-} from "ai";
-import { Experimental_StdioMCPTransport as StdioMCPTransport } from "ai/mcp-stdio";
+import { generateText, tool } from "ai";
 import "dotenv/config";
 import z from "zod";
 import { httpRequest } from "./http-request.ts";
+import { runPython } from "./mcp.ts";
 
 const MAX_RESPONSE_LENGTH = 5000; // characters
 
@@ -28,22 +24,6 @@ You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools
 Challenge:
 ${challenge}
 `.trim();
-
-  // MCP Run Python: https://ai.pydantic.dev/mcp/run-python/
-  const runPythonMCP = await createMCPClient({
-    transport: new StdioMCPTransport({
-      command: "deno",
-      args: [
-        "run",
-        "-N",
-        "-R=node_modules",
-        "-W=node_modules",
-        "--node-modules-dir=auto",
-        "jsr:@pydantic/mcp-run-python",
-        "stdio",
-      ],
-    }),
-  });
 
   const tools = {
     request: tool({
@@ -82,7 +62,7 @@ ${challenge}
         }
       },
     }),
-    ...(await runPythonMCP.tools()),
+    ...(await runPython.tools()),
   };
 
   const startTime = Date.now();
