@@ -13,13 +13,13 @@ This directory contains a Docker Compose configuration with Traefik reverse prox
 2. **Access the challenges:**
    - Cookie Spoofing 1: http://cookie1.localhost
    - Cookie Spoofing 2: http://cookie2.localhost
-   - Traefik Dashboard: http://localhost:8080
+   - Traefik Dashboard: http://localhost:8081
 
 ## How it works
 
 - **Traefik** acts as a reverse proxy, routing requests based on the `Host` header
 - All services run on an internal Docker network (`ctf-network`)
-- Only Traefik exposes ports to your host machine (port 80 and 8080)
+- Only Traefik exposes ports to your host machine (port 80 and 8081)
 - Each challenge is accessible via its own subdomain
 
 ## Adding new challenges
