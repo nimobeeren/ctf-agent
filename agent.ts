@@ -7,7 +7,7 @@ import {
 import { Experimental_StdioMCPTransport as StdioMCPTransport } from "ai/mcp-stdio";
 import "dotenv/config";
 import z from "zod";
-import { httpRequest } from "./network.ts";
+import { httpRequest } from "./http-request.ts";
 
 const MAX_RESPONSE_LENGTH = 5000; // characters
 

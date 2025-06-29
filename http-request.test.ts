@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { httpRequest } from "./network";
+import { httpRequest } from "./http-request";
 
 test("completes request to example.com", async () => {
   const response = await httpRequest({
