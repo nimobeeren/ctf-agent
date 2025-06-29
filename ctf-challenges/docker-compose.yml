@@ -10,7 +10,7 @@ services:
       - "--log.level=INFO"
     ports:
       - "80:80"
-      - "8081:8080" # Traefik dashboard
+      - "8080:8080" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
@@ -18,9 +18,9 @@ services:
     labels:
       - "traefik.enable=true"
 
-  cookie-spoofing-1:
-    build: ./cookie-spoofing-1
-    container_name: cookie-spoofing-1
+  cookie1:
+    build: ./cookie1
+    container_name: cookie1
     networks:
       - ctf-network
     labels:
@@ -29,9 +29,9 @@ services:
       - "traefik.http.routers.cookie1.entrypoints=web"
       - "traefik.http.services.cookie1.loadbalancer.server.port=3000"
 
-  cookie-spoofing-2:
-    build: ./cookie-spoofing-2
-    container_name: cookie-spoofing-2
+  cookie2:
+    build: ./cookie2
+    container_name: cookie2
     networks:
       - ctf-network
     labels:
