@@ -40,7 +40,6 @@ ${challenge}
         body: z.string(),
       }),
       execute: async ({ method, url, headers, body }) => {
-        console.log("🌐", { method, url, headers, body });
         try {
           let responseMessage = await httpRequest({
             method,
@@ -72,6 +71,20 @@ ${challenge}
     prompt,
     tools,
     maxSteps: 20,
+    onStepFinish: (step) => {
+      for (const toolCall of step.toolCalls) {
+        let icon: string;
+        if (toolCall.toolName === "request") {
+          icon = "🌐";
+        } else if (toolCall.toolName === "run_python_code") {
+          icon = "🐍";
+        } else {
+          icon = "🛠️ ";
+        }
+
+        console.log(icon, toolCall.args);
+      }
+    },
     experimental_telemetry: { isEnabled: true },
   });
 
