@@ -1,9 +1,10 @@
 import events from "node:events";
+import net from "node:net";
 import tls from "node:tls";
 
 /**
  * Make a HTTP request.
- * 
+ *
  * Similar to fetch, except it uses a raw TCP connection under the hood which means it can do things
  * that fetch doesn't allow, like sending a GET request with a body.
  * */
@@ -15,8 +16,8 @@ export async function httpRequest(init: {
   timeout?: number;
 }) {
   const url = new URL(init.url);
-  if (url.protocol !== "https:") {
-    throw new Error("Only HTTPS is supported");
+  if (url.protocol !== "http:" && url.protocol !== "https:") {
+    throw new Error("Only HTTP and HTTPS are supported");
   }
 
   const headers = new Headers(init.headers);
@@ -40,17 +41,27 @@ export async function httpRequest(init: {
     init.body || ""
   }`;
 
-  const socket = tls.connect(Number(url.port) || 443, url.hostname, {
-    rejectUnauthorized: false,
-    timeout: init.timeout ?? 5000,
+  // Use appropriate connection based on protocol
+  const isHttps = url.protocol === "https:";
+  const defaultPort = isHttps ? 443 : 80;
+  const port = Number(url.port) || defaultPort;
+
+  const socket = isHttps
+    ? tls.connect(port, url.hostname, {
+        rejectUnauthorized: false,
+      })
+    : net.connect(port, url.hostname);
+
+  socket.setTimeout(init.timeout ?? 5000);
+  socket.on("timeout", () => {
+    socket.destroy(new Error("Request timed out"));
   });
+
   socket.write(requestMessage);
+
   let responseMessage = "";
   socket.on("data", (data) => {
     responseMessage += data.toString();
-  });
-  socket.on("timeout", () => {
-    socket.destroy(new Error("Request timed out"));
   });
   await events.once(socket, "end");
   return responseMessage;
