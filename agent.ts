@@ -61,7 +61,8 @@ ${challenge}
         }
       },
     }),
-    ...(await runPython.tools()),
+    // Disabled Python tool for now since it makes the agent overthink things sometimes
+    // ...(await runPython.tools()),
   };
 
   const startTime = Date.now();

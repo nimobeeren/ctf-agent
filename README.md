@@ -23,7 +23,7 @@ cp .env.example .env
 Read a challenge from a text file:
 
 ```sh
-node main.ts challenges/ctflearn-88.md
+node main.ts ctf-challenges/cookie1/challenge.md
 ```
 
 Note: you need Node.js 24 to run TypeScript files without a build step.

@@ -1,0 +1,56 @@
+services:
+  traefik:
+    image: traefik:v3.4.3
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--log.level=INFO"
+    ports:
+      - "80:80"
+      - "8081:8080" # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - ctf-network
+    labels:
+      - "traefik.enable=true"
+
+  cookie1:
+    build: ./cookie1
+    container_name: cookie1
+    networks:
+      - ctf-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cookie1.rule=Host(`cookie1.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.cookie1.entrypoints=web"
+      - "traefik.http.services.cookie1.loadbalancer.server.port=3000"
+
+  cookie2:
+    build: ./cookie2
+    container_name: cookie2
+    networks:
+      - ctf-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cookie2.rule=Host(`cookie2.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.cookie2.entrypoints=web"
+      - "traefik.http.services.cookie2.loadbalancer.server.port=3000"
+
+  cookie3:
+    build: ./cookie3
+    container_name: cookie3
+    networks:
+      - ctf-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cookie3.rule=Host(`cookie3.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.cookie3.entrypoints=web"
+      - "traefik.http.services.cookie3.loadbalancer.server.port=3000"
+
+networks:
+  ctf-network:
+    driver: bridge
