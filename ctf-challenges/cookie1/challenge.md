@@ -1,3 +1,3 @@
-Welcome to the 'Galactic Cookie Club' online portal! As a 'Junior Taster' (guest), you have access to our public cookie news. However, the legendary recipe for the 'Cosmic Crunch Cookie' is stored securely in the personal vault of the 'Grand Cookie Master' (admin). We've heard whispers that the portal's security is as crumbly as a shortbread cookie. Your mission, should you choose to accept it, is to find a way into the Grand Cookie Master's account and retrieve the secret recipe.
+Welcome to the CipherCorp Employee Hub! As a new employee (guest), you have access to general company announcements. However, a confidential memo regarding "Project Chimera" is stored securely in the CEO's private files. Your mission, should you choose to accept it, is to find a way into the CEO's account and retrieve this confidential memo.
 
 http://cookie1.127.0.0.1.nip.io

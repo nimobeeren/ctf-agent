@@ -38,7 +38,7 @@ Then access it at http://localhost:3000
 
 ## How It Works
 
-To run multiple challenges simultaneously we use **Traefik** as a reverse proxy which routes requests based on the `Host` header. All services run on an internal Docker network, with only Traefik exposing ports to your host machine. This allows each challenge to be accessible via its own subdomain. Because not all clients resolve the IP address for `localhost` subdomains correctly, we use `nip.io` which a DNS server which routes back to `127.0.0.1`.
+To run multiple challenges simultaneously, we use **Traefik** as a reverse proxy, which routes requests based on the `Host` header. All services run on an internal Docker network, with only Traefik exposing ports to your host machine. This allows each challenge to be accessible via its own subdomain. Because not all clients resolve the IP address for `localhost` subdomains correctly, we use `nip.io`, a DNS server that routes back to `127.0.0.1`.
 
 ## Stopping Services
 
