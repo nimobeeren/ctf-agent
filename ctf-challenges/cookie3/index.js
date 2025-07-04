@@ -1,11 +1,13 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const path = require("node:path");
+const jwt = require("jwt-simple");
 
 const app = express();
 const port = 3000;
 
-const FLAG = "CTF{b010e368644ada068bc8dadb7d418c7b}";
+const FLAG = "CTF{d1e8c5495bf1359eb624c30b118a26b3}";
+const JWT_SECRET = "a_very_secret_key";
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -16,11 +18,20 @@ app.disable("etag"); // disable returning 304 not modified
 app.get("/", (req, res) => {
 	if (req.cookies.session) {
 		try {
-			const session = JSON.parse(
-				Buffer.from(req.cookies.session, "base64").toString(),
-			);
-			// VULNERABILITY: The application trusts the content of the cookie without any verification.
-			// An attacker can modify the cookie to impersonate another user, like 'admin'.
+			const token = req.cookies.session;
+
+			// Vulnerable implementation: decode the header first, then decide what to do.
+			const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64url').toString());
+
+			let session;
+			if (header.alg === 'none') {
+				// If alg is 'none', the developer might mistakenly trust the payload.
+				session = jwt.decode(token, null, true); // noVerify = true
+			} else {
+				// For any other algorithm, they verify it with the secret.
+				session = jwt.decode(token, JWT_SECRET);
+			}
+
 			if (session.username === "admin") {
 				return res.send(
 					renderHTML(
@@ -38,9 +49,15 @@ app.get("/", (req, res) => {
 					),
 				);
 			}
-		} catch {
-			// In case of invalid base64 or json, redirect to login
-			return res.redirect("/login");
+		} catch (err) {
+			return res
+				.status(400)
+				.send(
+					renderHTML(
+						"JWT Verification Failed",
+						`<p>${err.message}</p>`,
+					),
+				);
 		}
 	} else {
 		res.redirect("/login");
@@ -59,10 +76,8 @@ app.get("/logout", (_, res) => {
 app.post("/login", (req, res) => {
 	const { username, password } = req.body;
 	if (username === "guest" && password === "guest") {
-		const sessionCookie = Buffer.from('{"username": "guest"}').toString(
-			"base64",
-		);
-		res.cookie("session", sessionCookie);
+		const token = jwt.encode({ username: "guest" }, JWT_SECRET, "HS256");
+		res.cookie("session", token);
 		res.redirect("/");
 	} else {
 		res

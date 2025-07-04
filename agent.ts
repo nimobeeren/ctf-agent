@@ -61,7 +61,7 @@ ${challenge}
         }
       },
     }),
-    ...(await runPython.tools()),
+    // ...(await runPython.tools()),
   };
 
   const startTime = Date.now();

@@ -1,0 +1,14 @@
+{
+  "name": "cookie3",
+  "version": "1.0.0",
+  "description": "A simple JWT alg:none CTF challenge.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "express": "^4.17.1",
+    "jwt-simple": "^0.5.6"
+  }
+}

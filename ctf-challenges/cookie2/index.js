@@ -6,11 +6,13 @@ const crypto = require("node:crypto");
 const app = express();
 const port = 3000;
 
-const FLAG = "CTF{b010e368644ada068bc8dadb7d418c7b}";
+const FLAG = "CTF{739aaa16c7fef1c6e85d6f6ed673b8a7}";
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.disable("etag"); // disable returning 304 not modified
 
 app.get("/", (req, res) => {
 	if (req.cookies.session && req.cookies.integrity) {
