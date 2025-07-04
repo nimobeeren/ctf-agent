@@ -25,7 +25,7 @@ services:
       - ctf-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cookie1.rule=Host(`cookie1.localhost`)"
+      - "traefik.http.routers.cookie1.rule=Host(`cookie1.127.0.0.1.nip.io`)"
       - "traefik.http.routers.cookie1.entrypoints=web"
       - "traefik.http.services.cookie1.loadbalancer.server.port=3000"
 
@@ -36,7 +36,7 @@ services:
       - ctf-network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cookie2.rule=Host(`cookie2.localhost`)"
+      - "traefik.http.routers.cookie2.rule=Host(`cookie2.127.0.0.1.nip.io`)"
       - "traefik.http.routers.cookie2.entrypoints=web"
       - "traefik.http.services.cookie2.loadbalancer.server.port=3000"
 
