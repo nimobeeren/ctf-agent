@@ -43,7 +43,7 @@ def login():
             resp.set_cookie("session", encoded_user)
             return resp
         else:
-            return render_template("login.html", error="Invalid credentials")
+            return render_template("login.html", error="Invalid username or password")
 
     return render_template("login.html")
 

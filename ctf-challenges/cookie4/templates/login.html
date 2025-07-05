@@ -11,7 +11,10 @@
 <body>
   <div class="container">
     <h1>Login</h1>
-    <p class="hint">Log in as a data analyst: guest/guest</p>
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    <p class="hint">Log in as an executive: guest/guest</p>
     <form action="/login" method="POST">
       <label for="username">Username:</label>
       <input type="text" id="username" name="username" required>
