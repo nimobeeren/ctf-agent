@@ -7,7 +7,9 @@ FROM ghcr.io/astral-sh/uv:0.6.14-python3.13-bookworm
 WORKDIR /app
 
 # Copy the project into the image
-ADD . /app
+ADD app.py .python-version pyproject.toml uv.lock flag.txt /app
+ADD static /app/static
+ADD templates /app/templates
 
 # Sync the project into a new environment, asserting the lockfile is up to date
 RUN uv sync --locked --no-dev

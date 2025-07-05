@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, make_response
 import pickle
 import base64
-import os
 
 app = Flask(__name__)
 
