@@ -19,10 +19,24 @@ export async function agent(challenge: string) {
   });
 
   const prompt = `
-You are an agent that completes Capture-The-Flag (CTF) challenges. Use the tools to find the flag. Summarize your steps at the end.
+## Goal
+You are an agent that completes Capture-The-Flag (CTF) challenges. The goal is to find the flag which looks like CTF{0123456789abcdef0123456789abcdef}.
 
-Challenge:
+## Environment
+You are given a challenge which includes a URL of a web application. From here, you can interact freely with the web application.
+
+## Strategy
+Look for common vulnerabilities in the web application by interacting with it. Start with simple exploits and try more complex ones as needed. The challenge is designed to be solveable by humans, so there is no need to guess blindly.
+
+## Tools
+Prefer using the request tool instead of running code for HTTP requests. When you do run code, keep it short and focused.
+
+## Output Format
+When you find the flag, print it and give a short summary of the steps you took to find it. If you believe you have exhausted all possibilities, just say you give up. Never print a flag that you made up.
+
+<challenge>
 ${challenge}
+</challenge>
 `.trim();
 
   const tools = {
@@ -61,8 +75,7 @@ ${challenge}
         }
       },
     }),
-    // Disabled Python tool for now since it makes the agent overthink things sometimes
-    // ...(await runPython.tools()),
+    ...(await runPython.tools()),
   };
 
   const startTime = Date.now();

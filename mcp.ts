@@ -7,6 +7,7 @@ import { Experimental_StdioMCPTransport as StdioMCPTransport } from "ai/mcp-stdi
  */
 export const runPython = await createMCPClient({
   transport: new StdioMCPTransport({
+    // deno run -N -R=node_modules -W=node_modules --node-modules-dir=auto jsr:@pydantic/mcp-run-python stdio
     command: "deno",
     args: [
       "run",
