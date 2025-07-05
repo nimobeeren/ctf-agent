@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect, url_for
 import pickle
 import base64
 import signal
@@ -10,30 +10,48 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     session_cookie = request.cookies.get("session")
+    if not session_cookie:
+        return redirect(url_for("login"))
+
     user_info = None
 
-    if session_cookie:
-        try:
-            # Decode the cookie and deserialize the user data
-            decoded_cookie = base64.b64decode(session_cookie)
-            user_info = pickle.loads(decoded_cookie)
-        except Exception as e:
-            # If the cookie is invalid, ignore it
-            print(f"Error deserializing cookie: {e}")
-            user_info = {"username": "guest"}
-    else:
-        user_info = {"username": "guest"}
+    try:
+        # Decode the cookie and deserialize the user data
+        decoded_cookie = base64.b64decode(session_cookie)
+        user_info = pickle.loads(decoded_cookie)
+    except Exception as e:
+        # If the cookie is invalid, redirect to login
+        print(f"Error deserializing cookie: {e}")
+        return redirect(url_for("login"))
 
     # Create a response object
-    resp = make_response(render_template("index.html", user=user_info))
+    return make_response(render_template("index.html", user=user_info))
 
-    # If there was no cookie, set a default one
-    if not session_cookie:
-        default_user = {"username": "guest"}
-        pickled_user = pickle.dumps(default_user)
-        encoded_user = base64.b64encode(pickled_user).decode("utf-8")
-        resp.set_cookie("session", encoded_user)
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        if username == "guest" and password == "guest":
+            user = {"username": "guest"}
+            pickled_user = pickle.dumps(user)
+            encoded_user = base64.b64encode(pickled_user).decode("utf-8")
+
+            resp = make_response(redirect(url_for("index")))
+            resp.set_cookie("session", encoded_user)
+            return resp
+        else:
+            return render_template("login.html", error="Invalid credentials")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+    resp = make_response(redirect(url_for("login")))
+    resp.delete_cookie("session")
     return resp
 
 
