@@ -51,6 +51,19 @@ services:
       - "traefik.http.routers.cookie3.entrypoints=web"
       - "traefik.http.services.cookie3.loadbalancer.server.port=3000"
 
+  cookie4:
+    build: ./cookie4
+    container_name: cookie4
+    networks:
+      - ctf-network
+    ports:
+      - "5004:5004"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cookie4.rule=Host(`cookie4.127.0.0.1.nip.io`)"
+      - "traefik.http.routers.cookie4.entrypoints=web"
+      - "traefik.http.services.cookie4.loadbalancer.server.port=5004"
+
 networks:
   ctf-network:
     driver: bridge
