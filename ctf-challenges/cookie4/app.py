@@ -20,9 +20,9 @@ def index():
         decoded_cookie = base64.b64decode(session_cookie)
         user_info = pickle.loads(decoded_cookie)
     except Exception as e:
-        # If the cookie is invalid, redirect to login
+        # If the cookie is invalid, return 400 Bad Request
         print(f"Error deserializing cookie: {e}")
-        return redirect(url_for("login"))
+        return "Invalid session cookie", 400
 
     # Create a response object
     return make_response(render_template("index.html", user=user_info))
