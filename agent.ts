@@ -1,5 +1,5 @@
 import { createAzure } from "@ai-sdk/azure";
-import { generateText, tool } from "ai";
+import { generateText, stepCountIs, tool } from "ai";
 import "dotenv/config";
 import z from "zod";
 import { httpRequest } from "./http-request.ts";
@@ -14,7 +14,7 @@ const MAX_RESPONSE_LENGTH = 5000; // characters
  */
 export async function agent(challenge: string) {
   const azure = createAzure({
-    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai/deployments`,
+    baseURL: `${process.env.AZURE_OPENAI_ENDPOINT}/openai`,
     apiKey: process.env.AZURE_OPENAI_API_KEY,
   });
 
@@ -42,7 +42,7 @@ ${challenge}
   const tools = {
     request: tool({
       description: "Make a HTTP request",
-      parameters: z.object({
+      inputSchema: z.object({
         method: z.string(),
         url: z.string(),
         headers: z.array(
@@ -81,11 +81,10 @@ ${challenge}
   const startTime = Date.now();
 
   const result = await generateText({
-    model: azure("gpt-5-mini"),
+    model: azure.responses("gpt-5-mini"),
     prompt,
     tools,
-    temperature: 1,
-    maxSteps: 20,
+    stopWhen: stepCountIs(20),
     onStepFinish: (step) => {
       for (const toolCall of step.toolCalls) {
         let icon: string;
@@ -97,7 +96,7 @@ ${challenge}
           icon = "🛠️ ";
         }
 
-        console.log(icon, toolCall.args);
+        console.log(icon, toolCall.input);
       }
     },
     experimental_telemetry: { isEnabled: true },
