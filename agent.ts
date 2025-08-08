@@ -81,9 +81,10 @@ ${challenge}
   const startTime = Date.now();
 
   const result = await generateText({
-    model: azure("o4-mini"),
+    model: azure("gpt-5-mini"),
     prompt,
     tools,
+    temperature: 1,
     maxSteps: 20,
     onStepFinish: (step) => {
       for (const toolCall of step.toolCalls) {
