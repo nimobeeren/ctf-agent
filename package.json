@@ -11,17 +11,16 @@
   },
   "dependencies": {
     "@ai-sdk/azure": "^2.0.6",
-    "@opentelemetry/auto-instrumentations-node": "^0.60.1",
-    "@opentelemetry/sdk-node": "^0.202.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.62.0",
+    "@opentelemetry/sdk-node": "^0.203.0",
     "ai": "^5.0.8",
-    "dotenv": "^16.5.0",
-    "langfuse-vercel": "^3.37.4",
-    "openai": "^5.5.1",
-    "zod": "^3.25.67"
+    "dotenv": "^17.2.1",
+    "langfuse-vercel": "^3.38.4",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^24.0.3",
-    "typescript": "^5.8.3",
+    "@types/node": "^24.2.0",
+    "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
 }
